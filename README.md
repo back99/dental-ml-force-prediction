@@ -6,58 +6,98 @@ Machine learning models for predicting orthodontic aligner forces across differe
 
 Orthodontic aligners apply forces and moments to teeth during treatment. This project uses ML to predict those forces at thicknesses where no real experimental data exists, using data from 0.25mm and 0.5mm aligners.
 
-**Teeth analyzed:** U6, U7  
-**Forces & Moments:** Fx, Fy, Fz (N), Tx, Ty, Tz (Nmm)
-
----
+- **Teeth analyzed:** U6, U7
+- **Forces & Moments:** Fx, Fy, Fz (N), Tx, Ty, Tz (Nmm)
+- **Input data:** `smith_dataset.csv` (DPA-type rows are extracted; see `xgboost/extract_dpa.py`)
 
 ## Project Structure
 
 ```
 dental-ml-force-prediction/
-├── correlation/        # Force correlation analysis
-├── xgboost/           # XGBoost-based prediction
-└── gpr/               # Gaussian Process Regression prediction
+├── correlation/        # Force/moment correlation analysis
+├── xgboost/            # XGBoost-based prediction (and linear baseline)
+└── gpr/                # Gaussian Process Regression prediction
 ```
 
----
+## Quick Start
+
+```bash
+# 0. Install dependencies (Python 3.9 recommended)
+pip install -r requirements.txt
+
+# 1. Extract DPA rows from the source dataset
+#    (produces dpa_025.csv, dpa_05.csv used by every later script)
+cd xgboost && python extract_dpa.py && cd ..
+
+# 2. Correlation matrix between the 6 force/moment components
+cd correlation && python correlation.py && cd ..
+
+# 3. XGBoost extrapolation + linear baseline
+cd xgboost
+python xgboost_force_prediction.py
+python linear_extrapolation.py
+python xgboost_split_comparison.py
+
+# 4. Generate simulated 0.75mm data (delta-based, w = 0.5 ~ 1.5)
+python generate_sim_075.py
+python simulation_075.py
+python plot_comparison.py
+cd ..
+
+# 5. GPR — Step 1: train on real 0.25 + 0.5mm only
+cd gpr && python gpr_prediction.py
+
+# 6. GPR — Step 2: add simulated 0.75mm data, predict 1.0mm & 1.25mm
+python gpr_with_sim.py
+```
+
+> Each script writes its outputs (PNG plots and intermediate CSVs) into the same directory it is run from. Move them into the matching `results/` folder if you want them to render in the per-folder READMEs.
 
 ## 1. Correlation Analysis
 
-Pairwise correlations between all 6 force/moment components.
+Pairwise Pearson correlations between all 6 force/moment components on the combined 0.25mm + 0.5mm DPA data.
 
 → See [`correlation/README.md`](correlation/README.md)
 
----
-
 ## 2. XGBoost
 
-Trains XGBoost on 0.25mm + 0.5mm data and compares against simulated 0.75mm range.
+Trains one XGBoost regressor per force component on 0.25mm + 0.5mm data and uses it to predict 0.75mm and 1.0mm.
 
-**Key finding:** XGBoost cannot extrapolate — predictions at 0.75mm and 1.0mm are identical flat lines. This limitation motivated the switch to GPR.
+**Key finding:** XGBoost (a tree-based model) cannot extrapolate. Predictions at 0.75mm and 1.0mm collapse to identical flat lines — the model just repeats the boundary value for any input outside the training range. This limitation motivated the switch to GPR.
 
 → See [`xgboost/README.md`](xgboost/README.md)
 
----
-
 ## 3. GPR — Gaussian Process Regression
 
-GPR with Matern kernel (ν=1.5) trained on real + simulated data to predict 1.0mm & 1.25mm forces.
+GPR with a Matern kernel (ν = 1.5) trained on real (and optionally simulated) data to predict 1.0mm and 1.25mm forces. Implemented with GPyTorch on GPU.
 
-| | Step 1 | Step 2 |
-|---|--------|--------|
-| Training data | Real 0.25 + 0.5mm | Real 0.25 + 0.5mm + Sim 0.75mm |
-| Predicts | 0.75mm, 1.0mm | 1.0mm, 1.25mm |
-| 1.0mm vs 1.25mm distinction | ❌ Nearly identical | ✅ Different values |
-| Uncertainty | Confidence band (μ ± 2σ) | Multiple prediction lines (w = 0.5~1.5) |
-| Time trend | ❌ Flat | ❌ Still flat |
+| | Step 1 (real only) | Step 2 (with simulated data) |
+|---|---|---|
+| **Training data** | Real 0.25 + 0.5mm | Real 0.25 + 0.5mm + sim 0.75mm |
+| **Predicts** | 0.75mm, 1.0mm | 1.0mm, 1.25mm |
+| **1.0mm vs 1.25mm distinction** | ❌ nearly identical | ✅ different values |
+| **Uncertainty representation** | Confidence band (μ ± 2σ) | Multiple prediction lines (w = 0.5 ~ 1.5) |
+| **Time trend** | ❌ flat | ❌ still flat |
 
 → See [`gpr/README.md`](gpr/README.md)
 
----
-
 ## Environment
+
 - Python 3.9
 - PyTorch + GPyTorch (GPU)
-- XGBoost, scikit-learn, pandas, matplotlib
+- XGBoost, scikit-learn, pandas, numpy
+- matplotlib, seaborn
 - GPU: NVIDIA L40S (Libra HPC) for GPR training
+
+See `requirements.txt` for exact package list.
+
+## Limitations & Future Work
+
+- **Time trend stays flat** even in GPR Step 2. The model captures the thickness axis but not the temporal dynamics — adding richer time features or a time-aware kernel is a likely next step.
+- **Only 2–3 thickness levels** of real data. The simulated 0.75mm rows are a delta-based interpolation, not true measurements; conclusions at ≥ 1.0mm should be treated as exploratory.
+- **U6 and U7 only.** Generalization to other tooth positions is untested.
+- **No cross-validation** on the GPR fits — only train/test split is used in XGBoost.
+
+## Data
+
+Source rows are filtered from `smith_dataset.csv` (DPA-type only). If you redistribute this repository, please also document the original data source and licensing — the dataset is **not** included in this repo.

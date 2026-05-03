@@ -1,0 +1,17 @@
+# Dental ML Force Prediction — pinned-loose dependencies
+# Tested with Python 3.9. CUDA-compatible PyTorch / GPyTorch builds are
+# required for the GPR scripts to run on GPU; CPU builds also work but are slow.
+
+numpy>=1.23
+pandas>=1.5
+scikit-learn>=1.2
+matplotlib>=3.6
+seaborn>=0.12
+
+# XGBoost
+xgboost>=1.7
+
+# GPR (GPU-accelerated). Install a torch build that matches your CUDA version
+# from https://pytorch.org/get-started/locally/ before installing gpytorch.
+torch>=2.0
+gpytorch>=1.11
