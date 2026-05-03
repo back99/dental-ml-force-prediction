@@ -7,11 +7,6 @@ XGBoost is a tree-based model and **cannot extrapolate** beyond the training dat
 Predictions at 0.75mm and 1.0mm produce identical flat lines — the model simply repeats the boundary value for any input outside the training range.
 This limitation motivated the switch to GPR (see `../gpr/`).
 
-## Data
-- `dpa_025.csv` — 0.25mm aligner thickness (real data)
-- `dpa_05.csv` — 0.5mm aligner thickness (real data)
-- `smith_dataset.csv` — Raw Smith dataset
-
 ## Scripts
 | File | Description |
 |------|-------------|
@@ -33,11 +28,21 @@ Where:
 - w = [0.5, 0.8, 1.0, 1.2, 1.5] — 5 weights to express simulation range
 
 ## Results
-| File | Description |
-|------|-------------|
-| `results/simulation_U6.png` | XGBoost vs simulation range — Tooth U6 |
-| `results/simulation_U7.png` | XGBoost vs simulation range — Tooth U7 |
-| `results/comparison_U6.png` | Force comparison plots — Tooth U6 |
-| `results/comparison_U7.png` | Force comparison plots — Tooth U7 |
-| `results/linear_extrapolation_U6.png` | Linear extrapolation — Tooth U6 |
-| `results/linear_extrapolation_U7.png` | Linear extrapolation — Tooth U7 |
+
+### XGBoost vs Simulation Range — Tooth U6
+![Simulation U6](results/simulation_U6.png)
+
+### XGBoost vs Simulation Range — Tooth U7
+![Simulation U7](results/simulation_U7.png)
+
+### Force Comparison — Tooth U6
+![Comparison U6](results/comparison_U6.png)
+
+### Force Comparison — Tooth U7
+![Comparison U7](results/comparison_U7.png)
+
+### Linear Extrapolation — Tooth U6
+![Linear Extrapolation U6](results/linear_extrapolation_U6.png)
+
+### Linear Extrapolation — Tooth U7
+![Linear Extrapolation U7](results/linear_extrapolation_U7.png)

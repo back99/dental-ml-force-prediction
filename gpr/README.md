@@ -24,24 +24,30 @@ Uses Gaussian Process Regression (GPR) to predict orthodontic forces beyond the 
 | `gpr_prediction.py` | GPR trained on 0.25 + 0.5mm real data → predicts 0.75mm & 1.0mm |
 | `gpr_with_sim.py` | GPR trained on 0.25 + 0.5 + sim 0.75mm → predicts 1.0mm & 1.25mm |
 
-## Experiments
-
-### Step 1 — Real data only (gpr_prediction.py)
-- **Training:** Real 0.25mm + Real 0.5mm (full data, no sampling)
-- **Predicts:** 0.75mm, 1.0mm
-- **Uncertainty:** Shaded band = GPR confidence interval (μ ± 2σ)
-- **Result:** Both predictions are nearly identical flat lines — only 2 thickness points is insufficient for extrapolation
-
-### Step 2 — With simulated 0.75mm (gpr_with_sim.py)
-- **Training:** Real 0.25mm + Real 0.5mm + Simulated 0.75mm (5 weights)
-- **Predicts:** 1.0mm, 1.25mm
-- **Uncertainty:** Multiple prediction lines — one per w value, representing data uncertainty from simulation
-- **Result:** 1.0mm and 1.25mm are now distinguishable ✅ — but time trend is still flat ❌
-
 ## Results
-| File | Description |
-|------|-------------|
-| `results/gpr_U6.png` | GPR prediction (real data only) — Tooth U6 |
-| `results/gpr_U7.png` | GPR prediction (real data only) — Tooth U7 |
-| `results/gpr_sim_U6.png` | GPR prediction (with sim 0.75mm) — Tooth U6 |
-| `results/gpr_sim_U7.png` | GPR prediction (with sim 0.75mm) — Tooth U7 |
+
+### Step 1 — Real data only (0.25 + 0.5mm → predicts 0.75mm & 1.0mm)
+
+> Shaded band = GPR confidence interval (μ ± 2σ) — represents **model uncertainty**
+
+#### Tooth U6
+![GPR U6](results/gpr_U6.png)
+
+#### Tooth U7
+![GPR U7](results/gpr_U7.png)
+
+**Finding:** Both predictions are nearly identical flat lines — only 2 thickness points is insufficient for extrapolation.
+
+---
+
+### Step 2 — With simulated 0.75mm (0.25 + 0.5 + sim 0.75mm → predicts 1.0mm & 1.25mm)
+
+> Multiple lines (w = 0.5~1.5) = one GPR per weight value — represents **data uncertainty** from simulation
+
+#### Tooth U6
+![GPR Sim U6](results/gpr_sim_U6.png)
+
+#### Tooth U7
+![GPR Sim U7](results/gpr_sim_U7.png)
+
+**Finding:** 1.0mm and 1.25mm are now distinguishable ✅ — but time trend is still flat ❌
