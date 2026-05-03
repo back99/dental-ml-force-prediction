@@ -1,0 +1,29 @@
+# Conda environment for the GPR pipeline (used by gpr/run_gpr.sbatch)
+#
+# Create:
+#   conda env create -f environment.yml
+# Update:
+#   conda env update -f environment.yml --prune
+# Activate:
+#   conda activate dental-gpr
+
+name: dental-gpr
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.9
+  - pip
+  - numpy>=1.23
+  - pandas>=1.5
+  - scikit-learn>=1.2
+  - matplotlib>=3.6
+  - seaborn>=0.12
+  - xgboost>=1.7
+  # GPU stack — adjust pytorch-cuda to match the CUDA module you load on Libra
+  - pytorch>=2.0
+  - pytorch-cuda=12.1
+  - pip:
+      - gpytorch>=1.11
