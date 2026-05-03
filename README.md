@@ -6,7 +6,7 @@ Machine learning models for predicting orthodontic aligner forces across differe
 
 Orthodontic aligners apply forces and moments to teeth during treatment. This project uses ML to predict those forces at thicknesses where no real experimental data exists, using data from 0.25mm and 0.5mm aligners.
 
-**Teeth analyzed:** U6, U7
+**Teeth analyzed:** U6, U7  
 **Forces & Moments:** Fx, Fy, Fz (N), Tx, Ty, Tz (Nmm)
 
 ---
@@ -26,8 +26,6 @@ dental-ml-force-prediction/
 
 Pairwise correlations between all 6 force/moment components.
 
-![Correlation Matrix](correlation/results/correlation_matrix.png)
-
 → See [`correlation/README.md`](correlation/README.md)
 
 ---
@@ -36,10 +34,7 @@ Pairwise correlations between all 6 force/moment components.
 
 Trains XGBoost on 0.25mm + 0.5mm data and compares against simulated 0.75mm range.
 
-**Key finding:** XGBoost cannot extrapolate — predictions at 0.75mm and 1.0mm are identical flat lines.
-
-![Simulation U6](xgboost/results/simulation_U6.png)
-![Simulation U7](xgboost/results/simulation_U7.png)
+**Key finding:** XGBoost cannot extrapolate — predictions at 0.75mm and 1.0mm are identical flat lines. This limitation motivated the switch to GPR.
 
 → See [`xgboost/README.md`](xgboost/README.md)
 
@@ -49,22 +44,12 @@ Trains XGBoost on 0.25mm + 0.5mm data and compares against simulated 0.75mm rang
 
 GPR with Matern kernel (ν=1.5) trained on real + simulated data to predict 1.0mm & 1.25mm forces.
 
-### Step 1: Real data only → predicts 0.75mm & 1.0mm
-*(Shaded band = model uncertainty, μ ± 2σ)*
-
-![GPR U6](gpr/results/gpr_U6.png)
-![GPR U7](gpr/results/gpr_U7.png)
-
-### Step 2: With simulated 0.75mm → predicts 1.0mm & 1.25mm
-*(Multiple lines = data uncertainty from simulation weights w = 0.5~1.5)*
-
-![GPR Sim U6](gpr/results/gpr_sim_U6.png)
-![GPR Sim U7](gpr/results/gpr_sim_U7.png)
-
 | | Step 1 | Step 2 |
 |---|--------|--------|
+| Training data | Real 0.25 + 0.5mm | Real 0.25 + 0.5mm + Sim 0.75mm |
+| Predicts | 0.75mm, 1.0mm | 1.0mm, 1.25mm |
 | 1.0mm vs 1.25mm distinction | ❌ Nearly identical | ✅ Different values |
-| Uncertainty representation | Confidence band (μ ± 2σ) | Multiple prediction lines |
+| Uncertainty | Confidence band (μ ± 2σ) | Multiple prediction lines (w = 0.5~1.5) |
 | Time trend | ❌ Flat | ❌ Still flat |
 
 → See [`gpr/README.md`](gpr/README.md)
