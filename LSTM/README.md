@@ -38,9 +38,37 @@ python lstm_loo.py
 ## Output
 
 - `results/lstm_{sheet}.png` — single run prediction plots (4 sheets × 6 components)
-- `results/loo/lstm_loo_{sheet}_predict_cohort{N}.png` — LOO plots (4 sheets × 5 cohorts = 20 plots)
+- `results/lstm_loo_{sheet}_predict_cohort{N}.png` — LOO plots (4 sheets × 5 cohorts = 20 plots)
 - MAE summary printed to stdout
 
 ## Why LOO-CV?
 
 With only 5 cohorts, a single train/test split is too sensitive to which cohort is held out. LOO-CV trains 5 separate models (each leaving out one cohort) and averages MAE across all folds, giving a more reliable estimate of generalization performance.
+
+---
+
+## LOO-CV Results
+
+### DPA 0.25mm — U6
+
+| Cohort 1 | Cohort 2 | Cohort 3 | Cohort 4 | Cohort 5 |
+|:---:|:---:|:---:|:---:|:---:|
+| ![](results/lstm_loo_DPA025_U6_predict_cohort1.png) | ![](results/lstm_loo_DPA025_U6_predict_cohort2.png) | ![](results/lstm_loo_DPA025_U6_predict_cohort3.png) | ![](results/lstm_loo_DPA025_U6_predict_cohort4.png) | ![](results/lstm_loo_DPA025_U6_predict_cohort5.png) |
+
+### DPA 0.25mm — U7
+
+| Cohort 1 | Cohort 2 | Cohort 3 | Cohort 4 | Cohort 5 |
+|:---:|:---:|:---:|:---:|:---:|
+| ![](results/lstm_loo_DPA025_U7_predict_cohort1.png) | ![](results/lstm_loo_DPA025_U7_predict_cohort2.png) | ![](results/lstm_loo_DPA025_U7_predict_cohort3.png) | ![](results/lstm_loo_DPA025_U7_predict_cohort4.png) | ![](results/lstm_loo_DPA025_U7_predict_cohort5.png) |
+
+### DPA 0.5mm — U6
+
+| Cohort 1 | Cohort 2 | Cohort 3 | Cohort 4 | Cohort 5 |
+|:---:|:---:|:---:|:---:|:---:|
+| ![](results/lstm_loo_DPA05_U6_predict_cohort1.png) | ![](results/lstm_loo_DPA05_U6_predict_cohort2.png) | ![](results/lstm_loo_DPA05_U6_predict_cohort3.png) | ![](results/lstm_loo_DPA05_U6_predict_cohort4.png) | ![](results/lstm_loo_DPA05_U6_predict_cohort5.png) |
+
+### DPA 0.5mm — U7
+
+| Cohort 1 | Cohort 2 | Cohort 3 | Cohort 4 | Cohort 5 |
+|:---:|:---:|:---:|:---:|:---:|
+| ![](results/lstm_loo_DPA05_U7_predict_cohort1.png) | ![](results/lstm_loo_DPA05_U7_predict_cohort2.png) | ![](results/lstm_loo_DPA05_U7_predict_cohort3.png) | ![](results/lstm_loo_DPA05_U7_predict_cohort4.png) | ![](results/lstm_loo_DPA05_U7_predict_cohort5.png) |
