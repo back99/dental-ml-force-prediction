@@ -16,7 +16,8 @@ Orthodontic aligners apply forces and moments to teeth during treatment. This pr
 dental-ml-force-prediction/
 ├── correlation/        # Force/moment correlation analysis
 ├── xgboost/            # XGBoost-based prediction (and linear baseline)
-└── gpr/                # Gaussian Process Regression prediction
+├── gpr/                # Gaussian Process Regression prediction
+└── LSTM/               # LSTM cohort prediction with Leave-One-Out CV
 ```
 
 ## Quick Start
@@ -49,6 +50,12 @@ cd gpr && python gpr_prediction.py
 
 # 6. GPR — Step 2: add simulated 0.75mm data, predict 1.0mm & 1.25mm
 python gpr_with_sim.py
+
+# 7. LSTM — single run (train Cohorts 1-4, predict Cohort 5)
+cd LSTM && python lstm_cohort.py
+
+# 8. LSTM — Leave-One-Out CV (5 folds across all cohorts)
+python lstm_loo.py
 ```
 
 > Each script writes its outputs (PNG plots and intermediate CSVs) into the same directory it is run from. Move them into the matching `results/` folder if you want them to render in the per-folder READMEs.
@@ -67,7 +74,27 @@ Trains one XGBoost regressor per force component on 0.25mm + 0.5mm data and uses
 
 → See [`xgboost/README.md`](xgboost/README.md)
 
-## 3. GPR — Gaussian Process Regression
+## 4. LSTM — Cohort Prediction (Leave-One-Out CV)
+
+Unlike XGBoost and GPR (which predict across **aligner thicknesses**), the LSTM model predicts across **patient cohorts** — given 4 cohorts' force/moment time-series data, it predicts the 5th unseen cohort.
+
+- **Architecture:** LSTM (128 hidden, 2 layers) → Dense(64) → scalar output
+- **Input:** normalized time (0h ~ 336h = 14 days), **Output:** force or moment value
+- **Evaluation:** Leave-One-Out Cross-Validation (LOO-CV) — each of the 5 cohorts is left out once
+- **Device:** CPU (BioHPC)
+
+| | Single Run | LOO-CV |
+|---|---|---|
+| **Script** | `lstm_cohort.py` | `lstm_loo.py` |
+| **Train** | Cohorts 1–4 | 4 cohorts (rotating) |
+| **Predict** | Cohort 5 | Each cohort in turn |
+| **Output** | 4 PNGs | 20 PNGs |
+
+**Key finding:** LSTM captures the overall trend of force/moment over time but produces smooth curves that miss individual patient oscillations — expected given the small dataset size (5 cohorts).
+
+→ See [`LSTM/README.md`](LSTM/README.md)
+
+## 5. GPR — Gaussian Process Regression
 
 GPR with a Matern kernel (ν = 1.5) trained on real (and optionally simulated) data to predict 1.0mm and 1.25mm forces. Implemented with GPyTorch on GPU.
 
@@ -84,7 +111,7 @@ GPR with a Matern kernel (ν = 1.5) trained on real (and optionally simulated) d
 ## Environment
 
 - Python 3.9
-- PyTorch + GPyTorch (GPU)
+- PyTorch (CPU for LSTM, GPU for GPR) + GPyTorch
 - XGBoost, scikit-learn, pandas, numpy
 - matplotlib, seaborn
 - GPU: NVIDIA L40S (Libra HPC) for GPR training
@@ -97,6 +124,7 @@ See `requirements.txt` for exact package list.
 - **Only 2–3 thickness levels** of real data. The simulated 0.75mm rows are a delta-based interpolation, not true measurements; conclusions at ≥ 1.0mm should be treated as exploratory.
 - **U6 and U7 only.** Generalization to other tooth positions is untested.
 - **No cross-validation** on the GPR fits — only train/test split is used in XGBoost.
+- **LSTM smooth curves** miss individual patient oscillations due to small cohort size (n=5). LOO-CV gives a more robust MAE estimate but the model itself is still limited by data quantity.
 
 ## Data
 
