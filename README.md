@@ -74,27 +74,7 @@ Trains one XGBoost regressor per force component on 0.25mm + 0.5mm data and uses
 
 → See [`xgboost/README.md`](xgboost/README.md)
 
-## 4. LSTM — Cohort Prediction (Leave-One-Out CV)
-
-Unlike XGBoost and GPR (which predict across **aligner thicknesses**), the LSTM model predicts across **patient cohorts** — given 4 cohorts' force/moment time-series data, it predicts the 5th unseen cohort.
-
-- **Architecture:** LSTM (128 hidden, 2 layers) → Dense(64) → scalar output
-- **Input:** normalized time (0h ~ 336h = 14 days), **Output:** force or moment value
-- **Evaluation:** Leave-One-Out Cross-Validation (LOO-CV) — each of the 5 cohorts is left out once
-- **Device:** CPU (BioHPC)
-
-| | Single Run | LOO-CV |
-|---|---|---|
-| **Script** | `lstm_cohort.py` | `lstm_loo.py` |
-| **Train** | Cohorts 1–4 | 4 cohorts (rotating) |
-| **Predict** | Cohort 5 | Each cohort in turn |
-| **Output** | 4 PNGs | 20 PNGs |
-
-**Key finding:** LSTM captures the overall trend of force/moment over time but produces smooth curves that miss individual patient oscillations — expected given the small dataset size (5 cohorts).
-
-→ See [`LSTM/README.md`](LSTM/README.md)
-
-## 5. GPR — Gaussian Process Regression
+## 3. GPR — Gaussian Process Regression
 
 GPR with a Matern kernel (ν = 1.5) trained on real (and optionally simulated) data to predict 1.0mm and 1.25mm forces. Implemented with GPyTorch on GPU.
 
