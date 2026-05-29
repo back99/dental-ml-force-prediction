@@ -51,11 +51,9 @@ cd gpr && python gpr_prediction.py
 # 6. GPR — Step 2: add simulated 0.75mm data, predict 1.0mm & 1.25mm
 python gpr_with_sim.py
 
-# 7. LSTM — single run (train Cohorts 1-4, predict Cohort 5)
-cd LSTM && python lstm_cohort.py
-
-# 8. LSTM — Leave-One-Out CV (5 folds across all cohorts)
-python lstm_loo.py
+# 7. LSTM — LOO + Partial Observation forecast (dashed-line style)
+#    Hides the last k=1,2,3 time points and predicts them; 60 PNGs total
+cd LSTM && python lstm_forecast_v2.py
 ```
 
 > Each script writes its outputs (PNG plots and intermediate CSVs) into the same directory it is run from. Move them into the matching `results/` folder if you want them to render in the per-folder READMEs.
@@ -88,23 +86,26 @@ GPR with a Matern kernel (ν = 1.5) trained on real (and optionally simulated) d
 
 → See [`gpr/README.md`](gpr/README.md)
 
-## 4. LSTM — Cohort Prediction (Leave-One-Out CV)
+## 4. LSTM — LOO + Partial Observation Forecast
 
-Unlike XGBoost and GPR (which predict across **aligner thicknesses**), the LSTM model predicts across **patient cohorts** — given 4 cohorts' force/moment time-series data, it predicts the 5th unseen cohort.
+Unlike XGBoost and GPR (which predict across **aligner thicknesses**), the LSTM model predicts across **patient cohorts** — given 4 cohorts' force/moment time-series data, it predicts the last k time points of the 5th unseen cohort.
 
 - **Architecture:** LSTM (128 hidden, 2 layers) → Dense(64) → scalar output
 - **Input:** normalized time (0h ~ 336h = 14 days), **Output:** force or moment value
-- **Evaluation:** Leave-One-Out Cross-Validation (LOO-CV) — each of the 5 cohorts is left out once
+- **Evaluation:** Leave-One-Out (LOO) with Partial Observation — each cohort is left out once; the last k time points are additionally hidden
 - **Device:** CPU (BioHPC)
 
-| | Single Run | LOO-CV |
-|---|---|---|
-| **Script** | `lstm_cohort.py` | `lstm_loo.py` |
-| **Train** | Cohorts 1–4 | 4 cohorts (rotating) |
-| **Predict** | Cohort 5 | Each cohort in turn |
-| **Output** | 4 PNGs | 20 PNGs |
+| | LOO + Partial Obs |
+|---|---|
+| **Script** | `lstm_forecast_v2.py` |
+| **Train** | 4 cohorts (all pts) + target cohort (first 11-k pts) |
+| **Predict** | Last k time points per cohort (k = 1, 2, 3) |
+| **Visualization** | Gray solid (full actual) + colored dashed (LSTM prediction) + black triangles (hidden truth) |
+| **Output** | 60 PNGs (5 cohorts × 3 k-values × 4 sheets) |
 
-**Key finding:** LSTM captures the overall trend of force/moment over time but produces smooth curves that miss individual patient oscillations — expected given the small dataset size (5 cohorts).
+**Partial Observation:** For each target cohort, the last k time points are hidden during training (k=1 hides 14 days; k=2 hides 7 Days + 14 days; k=3 hides 6 Days + 7 Days + 14 days). The LSTM is trained on the remaining data and predicts the hidden points. Visualization shows the full actual time series as a gray solid line, the LSTM prediction as a colored dashed extension from the last observed point, and actual hidden values as black triangles.
+
+**Key finding:** LSTM captures the overall trend of force/moment over time but produces smooth predictions that miss individual patient oscillations — expected given the small dataset size (5 cohorts).
 
 → See [`LSTM/README.md`](LSTM/README.md)
 
